@@ -3,8 +3,12 @@
 const express = require("express");
 // Assigns an express server to app variable
 const app = express();
-// For activating the json parser in the express app
+// For using the json parser middlewear provided by express
 app.use(express.json())
+// Imports morgan, request logging middlewear
+const morgan = require("morgan")
+// For using the morgan middlewear with a pre-defined format
+app.use(morgan('tiny'))
 
 let persons = [
     { 
@@ -75,7 +79,7 @@ app.get('/api/persons/:id', (req, res) =>{
     const personId = req.params.id
     const foundPerson = persons.find(person => person.id === personId)
     if (foundPerson) {
-        res.json(foundPerson)
+        return res.json(foundPerson)
     }
     res.status(404).end()
 })
