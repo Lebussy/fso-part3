@@ -5,10 +5,57 @@ const express = require("express");
 const app = express();
 // For using the json parser middlewear provided by express
 app.use(express.json())
+
+
+
+
 // Imports morgan, request logging middlewear
 const morgan = require("morgan")
 // For using the morgan middlewear with a pre-defined format
 app.use(morgan('tiny'))
+
+// Adds a new body token to morgan, with the stringified body of the request
+// Not necessary for this use, but best practice
+morgan.token('body', (req, res) => {
+    console.log(req.body)
+    return JSON.stringify(req.body)
+})
+
+// For using morgan middlewear to log the json data in post requests
+app.use(morgan((tokens, req, res) => {
+
+    // Skips this request if the method is not POST
+    if (req.method !== "POST"){
+        console.log("Was not post")
+        return null
+    }
+
+    console.log("was post")
+    return [
+        tokens.method(req,res),
+        tokens.url(req,res),
+        tokens.status(req,res),
+        tokens['response-time'](req,res),
+        tokens.body(res, req)
+    ].join(' ')
+
+
+}))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 let persons = [
     { 
