@@ -3,6 +3,8 @@
 const express = require("express");
 // Imports morgan, request logging middlewear
 const morgan = require("morgan")
+// Imports cors, middlewear for changing the Access-Control-Allow-Origin attribute of the response
+const cors = require("cors")
 
 
 // Assigns an express server to app variable
@@ -15,10 +17,12 @@ app.use(express.json())
 // For using the morgan middlewear with a pre-defined format
 app.use(morgan('tiny'))
 
+app.use(cors())
+
 
 // Adds a new body token to morgan, with the stringified body of the request
 // Not necessary for this use, but best practice
-morgan.token('body', (req, res) => {
+morgan.token('body', (req, _res) => {
     return JSON.stringify(req.body)
 })
 
@@ -27,7 +31,6 @@ app.use(morgan((tokens, req, res) => {
     
     // Skips this request if the method is not POST
     if (req.method !== "POST"){
-        console.log("Was not post")
         return null
     }
 
@@ -41,21 +44,6 @@ app.use(morgan((tokens, req, res) => {
 
 
 }))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 let persons = [
     { 
@@ -79,7 +67,6 @@ let persons = [
       "number": "39-23-6423122"
     }
 ]
-
 
 // Post mapping for a new contact
 app.post('/api/persons', (req, res) => {
