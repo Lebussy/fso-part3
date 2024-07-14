@@ -1,6 +1,6 @@
 
 // imports express
-const express = require("express");
+const express = require("express")
 // Imports morgan, request logging middlewear
 const morgan = require("morgan")
 // Imports cors, middlewear for changing the Access-Control-Allow-Origin attribute of the response
@@ -125,7 +125,7 @@ app.delete('/api/persons/:id', (req, res) => {
     res.status(204).end()
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server listenening on port ${PORT}`)
 })
