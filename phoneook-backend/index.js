@@ -10,6 +10,8 @@ const cors = require("cors")
 // Assigns an express server to app variable
 const app = express();
 
+// For using the static resource loader
+app.use(express.static('dist'))
 
 // For using the json parser middlewear provided by express
 app.use(express.json())
