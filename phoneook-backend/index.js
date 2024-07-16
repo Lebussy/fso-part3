@@ -5,7 +5,8 @@ const express = require("express")
 const morgan = require("morgan")
 // Imports cors, middlewear for changing the Access-Control-Allow-Origin attribute of the response
 const cors = require("cors")
-
+// Imports the model from the mongoose module
+const Person = require('./models/person')
 
 // Assigns an express server to app variable
 const app = express();
@@ -20,7 +21,6 @@ app.use(express.json())
 app.use(morgan('tiny'))
 
 app.use(cors())
-
 
 // Adds a new body token to morgan, with the stringified body of the request
 // Not necessary for this use, but best practice
@@ -70,7 +70,23 @@ let persons = [
     }
 ]
 
-// Post mapping for a new contact
+// Get mapping for api/persons using the mongoose model
+app.get('/api/persons', (req, res) => {
+    Person.find({}).then(people => {
+        console.log(people)
+        res.json(people)
+    })
+})
+
+// Get mapping for a single person using mongoose model.findById()
+app.get('/api/persons/:id', (req, res) =>{
+    Person.findById(req.params.id).then(foundPerson => {
+        return res.json(foundPerson)
+    }).catch(err => res.status(404).end())
+    
+})
+
+// Post mapping for a new contact with mongoose Person model.save()
 app.post('/api/persons', (req, res) => {
     let newPerson = req.body
     // For checking there is a name field
@@ -92,10 +108,16 @@ app.post('/api/persons', (req, res) => {
         })
     }
 
-    // For adding the verified new person to the persons
-    newPerson = {"id": String(Math.floor(Math.random() * 10000)), ...req.body}
-    persons = persons.concat(newPerson)
-    res.json(newPerson)
+    console.log("Adding new person from request body", newPerson)
+
+    const newPersonDocument = new Person({...newPerson})
+
+    console.log("new person is now a mongoose document constucted using the model", newPersonDocument)
+
+    newPersonDocument.save().then(addedPerson => {
+        console.log("This person was added and mongoose Model method responded with this", addedPerson)
+        res.json(addedPerson)
+    })
 })
 
 // Get mapping for info
@@ -105,20 +127,8 @@ app.get('/info', (req, res) => {
     res.send(`<p>Phonebook has info for ${peopleCount} people</p><p>${requestTime}</p>`)
 })
 
-// Get mapping for api/persons
-app.get('/api/persons', (req, res) => {
-    res.json(persons)
-})
 
-// Get mapping for a single person
-app.get('/api/persons/:id', (req, res) =>{
-    const personId = req.params.id
-    const foundPerson = persons.find(person => person.id === personId)
-    if (foundPerson) {
-        return res.json(foundPerson)
-    }
-    res.status(404).end()
-})
+
 
 // Delete mapping for a single person object based on id parameter
 app.delete('/api/persons/:id', (req, res) => {
