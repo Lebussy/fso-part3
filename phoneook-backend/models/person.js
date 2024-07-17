@@ -12,7 +12,11 @@ mongoose.connect(URL).then(() => {
 })
 
 const personSchema = mongoose.Schema({
-    name: String,
+    name: {
+        type: String,
+        required: [true, "Name is missing"],
+        minLength: [3, "Name {value} us shorter than min length (3)"]
+    },
     number: String
 })
 

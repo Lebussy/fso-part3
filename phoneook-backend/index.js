@@ -73,32 +73,17 @@ app.get('/api/persons/:id', (req, res, next) =>{
 })
 
 // Post mapping for a new contact with mongoose Person model.save()
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     let newPerson = req.body
-    // For checking there is a name field
-    if (!newPerson.name){
-        return res.status(400).json({
-            error: "name missing"
-        })
-    }
-    
-    // For checking if there is a number 
-    if (!newPerson.number){
-        return res.status(400).json({
-            error: "number missing"
-        })
-    }
-
-    console.log("Adding new person from request body", newPerson)
 
     const newPersonDocument = new Person({...newPerson})
 
-    console.log("new person is now a mongoose document constucted using the model", newPersonDocument)
-
-    newPersonDocument.save().then(addedPerson => {
-        console.log("This person was added and mongoose Model method responded with this", addedPerson)
-        res.json(addedPerson)
-    })
+    newPersonDocument.save()
+        .then(addedPerson => {
+            console.log("This person was added and mongoose Model method responded with this", addedPerson)
+            res.json(addedPerson)
+        })
+        .catch(error => next(error))
 })
 
 
@@ -133,10 +118,15 @@ app.delete('/api/persons/:id', (req, res, next) => {
 
 // Error handling middlewear
 app.use((error, request, response, next) => {
-    console.log(error)
+    console.log(error.name)
 
     if (error.name === 'CastError') {
         return response.status(400).send({ error: 'malformatted id' })
+    }
+
+    if (error.name === 'ValidationError') {
+        console.log("VALERRIR CALLED")
+        return response.status(400).send({error: error.message})
     }
 
     next(error)
