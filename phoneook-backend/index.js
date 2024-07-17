@@ -1,4 +1,4 @@
-
+require('mongoose')
 // imports express
 const express = require("express")
 // Imports morgan, request logging middlewear
@@ -44,45 +44,31 @@ app.use(morgan((tokens, req, res) => {
         tokens.body(req,res)
     ].join(' ')
 
-
 }))
 
-let persons = [
-    { 
-      "id": "1",
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": "2",
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": "3",
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": "4",
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
+app.get('/info', (req, res, next) => {
+    Person.countDocuments({})
+        .then(count => {
+            const infoTime = new Date();
+            res.send(`<p>There are ${count} entries in the phonebook, at ${infoTime}</p>`)
+        })
+        .catch(error => next(error))
+})
 
 // Get mapping for api/persons using the mongoose model
-app.get('/api/persons', (req, res) => {
-    Person.find({}).then(people => {
-        console.log(people)
-        res.json(people)
-    })
+app.get('/api/persons', (req, res, next) => {
+    Person.find({})
+        .then(people => {
+            res.json(people)
+        })
+        .catch(error => next(error))
 })
 
 // Get mapping for a single person using mongoose model.findById()
-app.get('/api/persons/:id', (req, res) =>{
+app.get('/api/persons/:id', (req, res, next) =>{
     Person.findById(req.params.id).then(foundPerson => {
         return res.json(foundPerson)
-    }).catch(err => res.status(404).end())
+    }).catch(err => next(err))
     
 })
 
@@ -95,16 +81,11 @@ app.post('/api/persons', (req, res) => {
             error: "name missing"
         })
     }
+    
     // For checking if there is a number 
     if (!newPerson.number){
         return res.status(400).json({
             error: "number missing"
-        })
-    }
-    // For ensuring that the name is not already in the phonebook
-    if (persons.some(person => person.name === newPerson.name)){
-        return res.status(400).json({
-            error: "name must be unique"
         })
     }
 
@@ -120,24 +101,49 @@ app.post('/api/persons', (req, res) => {
     })
 })
 
-// Get mapping for info
-app.get('/info', (req, res) => {
-    const peopleCount = persons.length;
-    const requestTime = new Date();
-    res.send(`<p>Phonebook has info for ${peopleCount} people</p><p>${requestTime}</p>`)
+
+// Mapping for updating a person document using mongoose
+app.put('/api/persons/:id', (req, res, next) => {
+    const body = req.body
+
+    const personObject = {
+        name: body.name,
+        number: body.number
+    }
+
+    Person.findByIdAndUpdate(req.params.id, personObject, {new:true})
+        .then(updatedPerson => {
+            console.log("Person updated, database returned this updated:", updatedPerson)
+            res.json(updatedPerson)
+        }).catch(error => next(error))
 })
 
 
+// Delete mapping using mongoose.findByIdAndRemove()
+// Calling the next() function passed into the middlwear with a parameter, results in the error-handling middlewear executing
+app.delete('/api/persons/:id', (req, res, next) => {
+    Person.findByIdAndDelete(req.params.id)
+        .then(response => {
+            res.status(204).end()
+        })
+        .catch(error => {
+            next(error)
+        })
+})
 
+// Error handling middlewear
+app.use((error, request, response, next) => {
+    console.log(error)
 
-// Delete mapping for a single person object based on id parameter
-app.delete('/api/persons/:id', (req, res) => {
-    const personId = req.params.id
-    persons = persons.filter(person => person.id !== personId)
-    res.status(204).end()
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' })
+    }
+
+    next(error)
 })
 
 const PORT = process.env.PORT || 3001
+
 app.listen(PORT, () => {
     console.log(`Server listenening on port ${PORT}`)
 })

@@ -6,4 +6,10 @@
 
 // import the person model module to express server ----------
 
-// Configure the api to utilise the mongoose model
+// Configure the toJSON method on the mongoose schema to return teh expected object format ----------
+
+// Configure the api to utilise the mongoose model for :
+    // get --------
+    // get with id
+    // post new 
+    // delete
