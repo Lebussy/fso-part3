@@ -12,6 +12,7 @@ mongoose.connect(URL).then(() => {
 })
 
 const personSchema = mongoose.Schema({
+
   name: {
     type: String,
     required: [true, 'Name is missing'],
