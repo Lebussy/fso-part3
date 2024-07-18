@@ -96,7 +96,7 @@ app.put('/api/persons/:id', (req, res, next) => {
         number: body.number
     }
 
-    Person.findByIdAndUpdate(req.params.id, personObject, {new:true})
+    Person.findByIdAndUpdate(req.params.id, personObject, {runValidators : true, new: true})
         .then(updatedPerson => {
             console.log("Person updated, database returned this updated:", updatedPerson)
             res.json(updatedPerson)
@@ -118,14 +118,13 @@ app.delete('/api/persons/:id', (req, res, next) => {
 
 // Error handling middlewear
 app.use((error, request, response, next) => {
-    console.log(error.name)
+    console.log(error)
 
     if (error.name === 'CastError') {
         return response.status(400).send({ error: 'malformatted id' })
     }
 
     if (error.name === 'ValidationError') {
-        console.log("VALERRIR CALLED")
         return response.status(400).send({error: error.message})
     }
 

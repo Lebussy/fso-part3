@@ -15,9 +15,22 @@ const personSchema = mongoose.Schema({
     name: {
         type: String,
         required: [true, "Name is missing"],
-        minLength: [3, "Name {value} us shorter than min length (3)"]
+        minLength: [3, "Name '{VALUE}' is shorter than min length (3)"]
     },
-    number: String
+    number: {
+        type: String,
+        required: [true, "Contact must have a number"],
+        validate: {
+            validator: (val) => {
+                console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                    if (/^\d{2,3}-\d{5,}$/.test(val)){
+                        return val.length >= 9
+                    }
+                    return false
+                },   
+            message: "Phone number not in correct format"
+        }
+    }
 })
 
 
